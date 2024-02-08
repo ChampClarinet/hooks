@@ -1,5 +1,5 @@
 {
-  "name": "hooks",
+  "name": "@cantabile/hooks",
   "version": "1.0.0",
   "description": "React hooks snippets",
   "main": "dist/index.js",
