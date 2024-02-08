@@ -3,23 +3,34 @@
   "version": "1.0.0",
   "description": "React hooks snippets",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
+  "author": "Wallop Opasakhun (https://github.com/champclarinet)",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ChampClarinet/hooks.git"
   },
-  "author": "Wallop Opasakhun",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/ChampClarinet/hooks/issues"
   },
   "homepage": "https://github.com/ChampClarinet/hooks#readme",
   "devDependencies": {
     "@types/jest": "^29.5.12",
+    "@types/react": "^18.2.55",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@cantabile/date-helper": "^1.0.1",
+    "@types/axios": "^0.14.0",
+    "axios": "^1.6.7",
+    "react": "^18.2.0",
+    "react-router-dom": "^6.22.0"
   }
 }
