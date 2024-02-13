@@ -1,6 +1,6 @@
 {
   "name": "@cantabile/hooks",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "React hooks snippets",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@cantabile/date-helper": "^1.0.1",
-    "@types/axios": "^0.14.0",
     "axios": "^1.6.7",
     "react": "^18.2.0",
     "react-router-dom": "^6.22.0"
