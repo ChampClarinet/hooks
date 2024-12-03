@@ -73,16 +73,20 @@ export const useBreakpoint = (breakpoint: number) => {
  * @param {RefObject<HTMLElement>} ref - Reference to the DOM element whose size needs to be tracked.
  * @returns {number[]} - An array containing the width and height of the DOM element.
  */
-export const useElementSize = (ref: RefObject<HTMLElement>): number[] => {
+export const useElementSize = (
+  ref: RefObject<HTMLElement | null>
+): number[] => {
   const [size, setSize] = useState([
-    ref.current?.offsetWidth || 0,
-    ref.current?.offsetHeight || 0,
+    ref.current?.clientWidth || 0,
+    ref.current?.clientHeight || 0,
   ]);
 
   const updateSize = useCallback(() => {
     if (ref.current) {
-      const { offsetWidth, offsetHeight } = ref.current;
-      setSize([offsetWidth, offsetHeight]);
+      const { offsetWidth, offsetHeight, clientHeight, clientWidth } = ref.current;
+      const width = Math.max(offsetWidth, clientWidth);
+      const height = Math.max(offsetHeight, clientHeight);
+      setSize([width, height]);
     }
   }, [ref]);
 
