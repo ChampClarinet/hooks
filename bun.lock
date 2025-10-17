@@ -4,7 +4,7 @@
     "": {
       "name": "@cantabile/hooks",
       "dependencies": {
-        "@cantabile/date-helper": "latest",
+        "@cantabile/date-helper": "1.4.2",
         "axios": "^1.6.7",
       },
       "devDependencies": {
@@ -59,7 +59,7 @@
 
     "@babel/types": ["@babel/types@7.28.4", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.27.1" } }, "sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q=="],
 
-    "@cantabile/date-helper": ["@cantabile/date-helper@1.4.0", "", { "dependencies": { "moment": "^2.30.1" } }, "sha512-ngqE1xEWYi89gU9c/86/5/xNsXWmt22FPyOAvwJEnErCMmN25BNK/ygHkrypxgk6s81/B8fW2QTgeEj4s380UA=="],
+    "@cantabile/date-helper": ["@cantabile/date-helper@1.4.2", "", { "dependencies": { "moment": "^2.30.1" } }, "sha512-YOWtHhZhnZGN/L58Yh6o01n1gCo+9gJsiB1Mr8VAf1SbqnBun/0Y8jb41bwvesd0GgG881YOq/GcAQtirL6srg=="],
 
     "@commitlint/cli": ["@commitlint/cli@20.1.0", "", { "dependencies": { "@commitlint/format": "^20.0.0", "@commitlint/lint": "^20.0.0", "@commitlint/load": "^20.1.0", "@commitlint/read": "^20.0.0", "@commitlint/types": "^20.0.0", "tinyexec": "^1.0.0", "yargs": "^17.0.0" }, "bin": { "commitlint": "./cli.js" } }, "sha512-pW5ujjrOovhq5RcYv5xCpb4GkZxkO2+GtOdBW2/qrr0Ll9tl3PX0aBBobGQl3mdZUbOBgwAexEQLeH6uxL0VYg=="],
 
