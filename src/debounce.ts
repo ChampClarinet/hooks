@@ -1,28 +1,68 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 /**
- * Debounces a function call by delaying its execution.
- * @param {Function} handler The function to be debounced.
- * @param {number} [delay=1000] The delay in milliseconds before executing the function (default is 1000ms).
- * @returns {Function} The debounced version of the handler function.
+ * A React hook that returns a debounced version of a function.
+ * The debounced function delays invoking `fn` until after `delay` milliseconds
+ * have elapsed since the last time the debounced function was called.
+ *
+ * @template TArgs
+ * @param {(...args: TArgs) => void} fn - The function to debounce.
+ * @param {number} [delay=300] - Delay in milliseconds before executing `fn` (default: 300ms).
+ * @param {boolean} [immediate=false] - If true, invoke `fn` immediately on the first call,
+ * then debounce subsequent calls.
+ * @returns {(...args: TArgs) => void} - A debounced version of `fn`.
+ *
+ * @example
+ * ```tsx
+ * const handleInput = useDebounce((value: string) => {
+ *   console.log("Searching for:", value);
+ * }, 500);
+ *
+ * <input onChange={(e) => handleInput(e.target.value)} />
+ * ```
+ *
+ * @remarks
+ * - Safe with React concurrent rendering.
+ * - The returned function reference is stable (memoized with `useCallback`).
+ * - Automatically clears the timeout when the component unmounts.
  */
-export const useDebounce = (
-  handler: () => void,
-  delay: number = 1000
-): Function => {
-  /**
-   * Debounced version of the handler function.
-   * @returns {void}
-   */
-  const debouncedHandler = useCallback(() => {
-    const timeout = setTimeout(handler, delay);
-    return () => clearTimeout(timeout);
-  }, [handler, delay]);
+export function useDebounce<TArgs extends unknown[]>(
+  fn: (...args: TArgs) => void,
+  delay: number = 300,
+  immediate: boolean = false,
+): (...args: TArgs) => void {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fnRef = useRef(fn);
 
-  // Call the debounced handler effect
+  // Always reference latest fn
   useEffect(() => {
-    return debouncedHandler();
-  }, [debouncedHandler]);
+    fnRef.current = fn;
+  }, [fn]);
 
-  return debouncedHandler;
-};
+  const debounced = useCallback(
+    (...args: TArgs) => {
+      const callNow = immediate && !timeoutRef.current;
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        timeoutRef.current = null;
+        if (!immediate) fnRef.current(...args);
+      }, delay);
+
+      if (callNow) fnRef.current(...args);
+    },
+    [delay, immediate],
+  );
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  return debounced;
+}

@@ -21,6 +21,26 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./url-react": {
+      "types": "./dist/url/react-router.d.ts",
+      "import": "./dist/url/react-router.js",
+      "require": "./dist/url/react-router.cjs"
+    },
+    "./url-next-app": {
+      "types": "./dist/url/next-app.d.ts",
+      "import": "./dist/url/next-app.js",
+      "require": "./dist/url/next-app.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "url-react": [
+        "dist/url/react-router.d.ts"
+      ],
+      "url-next-app": [
+        "dist/url/next-app.d.ts"
+      ]
     }
   },
   "files": [
@@ -29,10 +49,13 @@
   "homepage": "https://github.com/ChampClarinet/hooks#readme",
   "scripts": {
     "clean": "rm -rf dist",
-    "build:esm": "bun build src/index.ts --outdir dist --target=node --format=esm --sourcemap --outfile=index.mjs",
-    "build:cjs": "bun build src/index.ts --outdir dist --target=node --format=cjs --sourcemap --outfile=index.cjs",
+    "prebuild": "node scripts/gen-barrel.mjs",
+    "build:esm": "bun build src/index.ts --outdir dist --target=node --format=esm --sourcemap --outfile=index.mjs --external:react --external:react-dom --external:react-router-dom",
+    "build:cjs": "bun build src/index.ts --outdir dist --target=node --format=cjs --sourcemap --outfile=index.cjs --external:react --external:react-dom --external:react-router-dom",
+    "build:esm:url": "bun build src/url/*.ts --outdir dist/url --target=node --format=esm --sourcemap --external:react --external:react-dom --external:react-router-dom --external:next --external:next/*",
+    "build:cjs:url": "bun build src/url/*.ts --outdir dist/url --target=node --format=cjs --sourcemap --external:react --external:react-dom --external:react-router-dom --external:next --external:next/*",
     "build:types": "tsc -p tsconfig.build.json",
-    "build": "bun run clean && bun run build:esm && bun run build:cjs && bun run build:types",
+    "build": "bun run clean && bun run prebuild && bun run build:esm && bun run build:cjs && bun run build:esm:url && bun run build:cjs:url && bun run build:types",
     "test": "bun test",
     "prepublishOnly": "bun run build",
     "commit": "cz",
@@ -53,16 +76,32 @@
     "globals": "^16.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.4",
+    "next": "^15.3.2",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^6.26.2",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.31.0"
   },
   "dependencies": {
     "@cantabile/date-helper": "latest",
-    "axios": "^1.6.7",
+    "axios": "^1.6.7"
+  },
+  "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
-    "react-router-dom": "^6.26.2"
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "react-router-dom": "^6.26.0",
+    "next": "^13.4.0 || ^14.0.0 || ^15.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react-router-dom": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    }
   },
   "config": {
     "commitizen": {
