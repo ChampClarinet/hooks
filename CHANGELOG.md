@@ -6,6 +6,19 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.2.1] - 2025-10-17
+
+### Fixed
+
+- Switched to **tsc-only unbundled ESM** output to avoid `node:` scheme and bundler interop issues.
+- Corrected `exports` map for root and subpath entries (`url-react`, `url-next-app`) to point at real `.js` files.
+- Moved `react`, `react-dom`, `next`, and `react-router-dom` to **peerDependencies** (router/next marked optional).
+
+### Notes
+
+- This patch mirrors the stabilization applied to `@cantabile/date-helper@1.4.2`.
+- Dual-format (ESM+CJS) may be considered in a future minor if needed.
+
 ## [1.2.0] - 2025-10-17
 
 ### ✨ Added
