@@ -1,44 +1,66 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
 import axios from "axios";
 
 /**
- * Options for configuring the useImage hook.
+ * Configuration options for the {@link useImage} hook.
+ * @interface UseImageOptions
  */
-export interface UseImage {
+export interface UseImageOptions {
   /**
-   * The source URL of the image.
+   * The source URL of the image to fetch.
    */
   src: string;
 }
 /**
- * Custom hook to fetch an image and return its URL.
- * @param {UseImageOptions} options - The options to configure the hook.
- * @returns {string | null} The URL of the fetched image, or null if the image hasn't been fetched yet.
+ * A React hook that fetches an image from a remote URL and returns
+ * a local object URL that can be used directly in `<img src={...} />`.
+ *
+ * It automatically cleans up object URLs to prevent memory leaks.
+ *
+ * @param {UseImageOptions} options - The image configuration options.
+ * @returns {string | null} - A local object URL of the fetched image, or `null` if not yet available.
+ *
+ * @example
+ * ```tsx
+ * const imageUrl = useImage({ src: "https://example.com/photo.jpg" });
+ *
+ * return imageUrl ? <img src={imageUrl} alt="preview" /> : <p>Loading...</p>;
+ * ```
+ *
+ * @remarks
+ * - The image is fetched as a Blob using Axios.
+ * - Automatically revokes object URLs when `src` changes or the component unmounts.
+ * - Returns `null` until the image is successfully fetched.
  */
-export const useImage = (options: UseImage) => {
-  const { src } = options;
-
+export function useImage({ src }: UseImageOptions): string | null {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
 
-  /**
-   * Fetches the image from the specified source URL.
-   * @param {string} src - The source URL of the image.
-   */
-  const handleFetchImage = useCallback(async (src: string) => {
-    if (src.length) {
+  useEffect(() => {
+    if (!src) return;
+
+    let activeUrl: string | null = null;
+
+    const fetchImage = async () => {
       try {
         const response = await axios.get(src, { responseType: "blob" });
         const url = URL.createObjectURL(response.data);
+        activeUrl = url;
         setImgUrl(url);
       } catch (error) {
-        console.error(error);
+        console.error("[useImage] Failed to load image:", error);
+        setImgUrl(null);
       }
-    }
-  }, []);
+    };
 
-  useEffect(() => {
-    handleFetchImage(src);
-  }, [handleFetchImage, src]);
+    fetchImage();
+
+    return () => {
+      if (activeUrl) {
+        URL.revokeObjectURL(activeUrl);
+      }
+    };
+  }, [src]);
 
   return imgUrl;
-};
+}

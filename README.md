@@ -1,147 +1,126 @@
 # @cantabile/hooks
 
-This package provides a collection of custom React hooks to enhance your React applications with common functionalities.
+A modern, framework-friendly collection of **TypeScript React hooks** — built for React 18 & 19, fully compatible with both **React Router** and **Next.js App Router**.
 
-## Installation
+Lightweight • Typed • Bun-optimized ⚡
 
-You can install the package using npm or yarn:
+---
+
+## 📦 Installation
+
+You can install with your preferred package manager:
 
 ```bash
+# npm
 npm install @cantabile/hooks
+
+# yarn
+yarn add @cantabile/hooks
+
+# bun
+bun add @cantabile/hooks
 ```
 
-or
+---
+
+## 🪄 Core Hooks
+
+| Hook                               | Description                                                         |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| `useClock()`                       | Returns the current `Date` object and updates every second.         |
+| `useDebounce(handler, delay?)`     | Delays execution of a function until after a given delay.           |
+| `useImage({ src })`                | Fetches an image from a URL and returns a blob URL.                 |
+| `useOutsideAlerter(ref, handler?)` | Detects clicks outside a specified element and triggers a callback. |
+| `useWindowSize()`                  | Returns `[width, height]` of the viewport and updates on resize.    |
+| `useBreakpoint(breakpoint)`        | Returns `true` if width < breakpoint.                               |
+| `useElementSize(ref)`              | Returns `[width, height]` of an element and updates on resize.      |
+| `useReMountComponent(threshold?)`  | Remounts component periodically (default 30s) when window blurs.    |
+| `useOrientation()`                 | Returns device orientation (`"portrait"` or `"landscape"`).         |
+| `useModalState(initial?)`          | Returns `{ state, open, close, toggle }` for modal management.      |
+
+---
+
+## 🌐 URL Hooks
+
+This package supports both **React Router** and **Next.js** with separate entrypoints:
+
+### React Router
+
+```ts
+import { useQueryParams, useSetQueryParams } from "@cantabile/hooks/url-react";
+
+const query = useQueryParams(["page", "search"]);
+const setQuery = useSetQueryParams();
+
+setQuery("page", "2");
+```
+
+### Next.js (App Router)
+
+```ts
+import { useQueryParams, useSetQueryParams } from "@cantabile/hooks/url-next-app";
+
+const query = useQueryParams(["tab"]);
+const setQuery = useSetQueryParams();
+
+setQuery("tab", "settings");
+```
+
+---
+
+## ⚙️ Utility
+
+| Hook / Function   | Description                                |
+| ----------------- | ------------------------------------------ |
+| `wait(ms?)`       | Promise-based delay helper for async flow. |
+| `useModalState()` | Reusable modal visibility state manager.   |
+
+---
+
+## 🧩 Framework Compatibility
+
+| Framework    | Supported Versions |
+| ------------ | ------------------ |
+| React        | 18.x, 19.x         |
+| React Router | 6.26+              |
+| Next.js      | 13.4+, 14.x, 15.x  |
+
+---
+
+## 🧠 Example Usage
+
+```ts
+import { useClock, useBreakpoint } from "@cantabile/hooks";
+
+export function DashboardHeader() {
+  const now = useClock();
+  const isMobile = useBreakpoint(768);
+
+  return (
+    <header>
+      <p>{now.toLocaleTimeString()}</p>
+      {isMobile && <p>📱 Mobile layout</p>}
+    </header>
+  );
+}
+
+```
+
+---
+
+## 🧱 Build & Development
 
 ```bash
-yarn add @cantabile/hooks
+bun run build
+bun run lint
+bun test
 ```
 
-## Available Hooks
+Uses **Bun 1.3+**, **TypeScript 5.6+**, and **ESM + CJS dual build**.
 
-### 1. useClock
+---
 
-```typescript
-import { useClock } from "@cantabile/hooks";
+## 🪪 License
 
-const currentTime = useClock();
-```
-
-Returns the current time and updates it every second.
-
-### 2. useImage
-
-```typescript
-import { useImage } from "@cantabile/hooks";
-
-const imageUrl = useImage({ src: "image-url.jpg" });
-```
-
-Fetches an image from the provided URL and returns its URL as a blob.
-
-### 3. useOutsideAlerter
-
-```typescript
-import { useOutsideAlerter } from "@cantabile/hooks";
-
-useOutsideAlerter(ref, () => {
-  // Handle outside click
-});
-```
-
-Detects clicks outside a specified DOM element and triggers a callback.
-
-### 4. useWindowSize
-
-```typescript
-import { useWindowSize } from "@cantabile/hooks";
-
-const [width, height] = useWindowSize();
-```
-
-Returns the current width and height of the window and updates them on window resize.
-
-### 5. useBreakpoint
-
-```typescript
-import { useBreakpoint } from "@cantabile/hooks";
-
-const isMobile = useBreakpoint(768);
-```
-
-Detects if the window width is less than the specified breakpoint.
-
-### 6. useElementSize
-
-```typescript
-import { useElementSize } from "@cantabile/hooks";
-
-const [width, height] = useElementSize(ref);
-```
-
-Returns the width and height of a specified DOM element and updates them on window resize.
-
-### 7. useReMountComponent
-
-```typescript
-import { useReMountComponent } from "@cantabile/hooks";
-
-const refreshCount = useReMountComponent();
-```
-
-Remounts the component after a specified time interval when the window loses focus.
-
-### 8. useOrientation
-
-```typescript
-import { useOrientation } from "@cantabile/hooks";
-
-const orientation = useOrientation();
-```
-
-Returns the current orientation of the device (portrait or landscape) and updates it on orientation change.
-
-### 9. useQueryParams
-
-```typescript
-import { useQueryParams } from "@cantabile/hooks";
-
-const queryParams = useQueryParams(["param1", "param2"]);
-```
-
-Returns an object containing query parameters extracted from the URL.
-
-### 10. useSetQueryParams
-
-```typescript
-import { useSetQueryParams } from "@cantabile/hooks";
-
-const setQueryParam = useSetQueryParams();
-```
-
-Allows setting query parameters in the URL.
-
-### 11. useDebounce
-
-```typescript
-import { useDebounce } from "@cantabile/hooks";
-
-useDebounce(() => {
-  // Handler
-}, 1000);
-```
-
-Delays executing a function until after a specified delay.
-
-### 12. useModalState
-
-```typescript
-import { useModalState } from "@cantabile/hooks";
-
-const { state, open, close, toggle } = useModalState();
-```
-
-Manages the state of a modal, providing functions to open, close, and toggle its visibility.
-
-## License
-
-This package is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Licensed under the **MIT License**.
+© 2025 [Wallop Opasakhun (ChampClarinet)](https://github.com/champclarinet)

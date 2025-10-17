@@ -1,182 +1,255 @@
-import { RefObject, useCallback, useEffect, useMemo, useState } from "react";
-import { wait } from "./utils";
+import type { RefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+/* ========================= useOutsideAlerter ========================= */
 
 /**
- * Custom hook to detect clicks outside a specified element.
- * @param {React.MutableRefObject<any>} ref - The ref object of the element to detect clicks outside of.
- * @param {() => any} [handler] - Optional. The callback function to execute when a click outside the element is detected.
- * @param {keyof DocumentEventMap} [eventType='mousedown'] - Optional. The type of event to listen for. Defaults to 'mousedown'.
+ * A React hook that invokes a callback when a pointer/keyboard event happens outside a given element.
+ *
+ * @param ref - The target element ref to guard.
+ * @param handler - Callback fired when an outside interaction is detected.
+ * @param options - Optional configuration.
+ * @param options.eventType - DOM event type to listen to (default: `"pointerdown"`).
+ * @param options.enabled - Toggle listener on/off (default: `true`).
+ *
+ * @example
+ * const ref = useRef<HTMLDivElement>(null);
+ * useOutsideAlerter(ref, () => setOpen(false));
  */
-export const useOutsideAlerter = (
-  ref: React.MutableRefObject<any>,
-  handler?: () => any,
-  eventType: keyof DocumentEventMap = "mousedown"
-) => {
-  useEffect(() => {
-    /**
-     * Handles click events outside the specified element.
-     * @param {Event} e - The click event.
-     */
-    const handleClickOutside = (e: Event) => {
-      ref.current && !ref.current.contains(e.target) && handler && handler();
-    };
-    document.addEventListener(eventType, handleClickOutside);
-    return () => document.removeEventListener(eventType, handleClickOutside);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref]);
-};
-
-/**
- * Custom hook to get the screen width and height and listen for their changes.
- * @returns {Array<number>} - An array containing the current width and height [width, height].
- */
-export const useWindowSize = () => {
-  const [size, setSize] = useState([0, 0]);
-
-  /**
-   * Updates the size state with the current window width and height.
-   */
-  const updateSize = useCallback(() => {
-    typeof window != "undefined" &&
-      setSize([window.innerWidth, window.innerHeight]);
-  }, []);
+export function useOutsideAlerter(
+  ref: React.RefObject<HTMLElement | null>,
+  handler?: () => void,
+  options?: { eventType?: keyof DocumentEventMap; enabled?: boolean },
+): void {
+  const { eventType = "pointerdown", enabled = true } = options ?? {};
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
 
   useEffect(() => {
-    window.addEventListener("resize", updateSize);
+    if (!enabled || typeof document == "undefined") return;
 
-    return () => window.removeEventListener("resize", updateSize);
-  }, [updateSize]);
-
-  useEffect(() => {
-    updateSize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return size;
-};
-
-/**
- * Custom hook to determine if the current window width is less than a specified breakpoint.
- * @param {number} breakpoint - The breakpoint width to compare against.
- * @returns {boolean} - True if the current window width is less than the specified breakpoint, otherwise false.
- */
-export const useBreakpoint = (breakpoint: number) => {
-  const [width] = useWindowSize();
-
-  const isInBreakpoint = useMemo(() => width < breakpoint, [breakpoint, width]);
-
-  return isInBreakpoint;
-};
-
-/**
- * Custom hook to get the size (width and height) of a DOM element and listen for changes.
- * @param {RefObject<HTMLElement>} ref - Reference to the DOM element whose size needs to be tracked.
- * @returns {number[]} - An array containing the width and height of the DOM element.
- */
-export const useElementSize = (
-  ref: RefObject<HTMLElement | null>
-): number[] => {
-  const [size, setSize] = useState([
-    ref.current?.clientWidth || 0,
-    ref.current?.clientHeight || 0,
-  ]);
-
-  const updateSize = useCallback(() => {
-    if (ref.current) {
-      const { offsetWidth, offsetHeight, clientHeight, clientWidth } = ref.current;
-      const width = Math.max(offsetWidth, clientWidth);
-      const height = Math.max(offsetHeight, clientHeight);
-      setSize([width, height]);
-    }
-  }, [ref]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined")
-      window.addEventListener("resize", updateSize);
-
-    return () => {
-      if (typeof window !== "undefined")
-        window.removeEventListener("resize", updateSize);
-    };
-  }, [ref, updateSize]);
-
-  useEffect(() => {
-    updateSize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return size;
-};
-
-/**
- * Custom hook to trigger remounting of the component after a specified threshold time.
- * @param {number} threshold - Time in milliseconds to trigger remounting. Default is 30 seconds.
- * @returns {number} - The number of times the component has been remounted.
- */
-export const useReMountComponent = (threshold: number = 30000): number => {
-  const [refreshCount, setRefreshCount] = useState(0);
-
-  const handleReMountComponent = useCallback(() => {
-    const timeoutId = setTimeout(() => {
-      setRefreshCount((prevCount) => prevCount + 1);
-    }, threshold);
-
-    return () => clearTimeout(timeoutId);
-  }, [threshold]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const blurListener = () => handleReMountComponent();
-
-      window.addEventListener("blur", blurListener);
-    }
-
-    return () => {
-      if (typeof window !== "undefined")
-        window.removeEventListener("blur", handleReMountComponent);
-    };
-  }, [handleReMountComponent]);
-
-  return refreshCount;
-};
-
-/**
- * Custom hook to provide the current orientation of the device.
- * @returns {Orientation | null} - The current orientation of the device, either "portrait" or "landscape", or null if unknown.
- */
-export const useOrientation = (): Orientation | null => {
-  const [orientation, setOrientation] = useState<Orientation | null>(null);
-
-  useEffect(() => {
-    const handleOrientationChange = async () => {
-      await wait(100); //? handle resizing lag
-      if (typeof window !== "undefined") {
-        if (window.matchMedia("(orientation: portrait)").matches) {
-          setOrientation("portrait");
-        } else if (window.matchMedia("(orientation: landscape)").matches) {
-          setOrientation("landscape");
-        } else {
-          setOrientation(null);
-          console.error("Unknown orientation");
-        }
+    const onEvent = (e: Event) => {
+      const el = ref.current;
+      if (!el) return;
+      const target = e.target as Node | null;
+      if (target && !el.contains(target)) {
+        handlerRef.current?.();
       }
     };
 
-    handleOrientationChange();
-
-    if (typeof window !== "undefined")
-      window.addEventListener("orientationchange", handleOrientationChange);
+    document.addEventListener(eventType, onEvent, { capture: true });
 
     return () => {
-      if (typeof window !== "undefined")
-        window.removeEventListener(
-          "orientationchange",
-          handleOrientationChange
-        );
+      document.removeEventListener(eventType, onEvent, { capture: true });
+    };
+  }, [enabled, eventType, ref]);
+}
+
+/* ============================ useWindowSize ========================== */
+
+/**
+ * Tracks the current viewport size and updates on resize/orientation changes.
+ *
+ * @returns A tuple `[width, height]` of the current window size.
+ *
+ * @remarks
+ * - SSR-safe: initializes as `[0, 0]` and updates on client.
+ * - Debounced with `requestAnimationFrame` to reduce layout thrashing.
+ */
+export function useWindowSize(): [number, number] {
+  const [size, setSize] = useState<[number, number]>([0, 0]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let rafId = 0;
+    const update = () => {
+      rafId = window.requestAnimationFrame(() => {
+        setSize([window.innerWidth, window.innerHeight]);
+      });
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  return size;
+}
+
+/* ============================= useBreakpoint ========================= */
+
+/**
+ * Returns `true` when the viewport width is less than the given breakpoint.
+ *
+ * @param breakpoint - Width threshold in pixels.
+ * @returns Whether the viewport width is smaller than `breakpoint`.
+ */
+export function useBreakpoint(breakpoint: number): boolean {
+  const [width] = useWindowSize();
+
+  return useMemo(() => width > 0 && width < breakpoint, [breakpoint, width]);
+}
+
+/**
+ * Observes an element's box size using `ResizeObserver` (with window-resize fallback),
+ * returning `[width, height]`.
+ *
+ * @param ref - Ref to the target HTMLElement to observe.
+ * @returns A tuple `[width, height]` of the element's current size.
+ *
+ * @remarks
+ * - Uses `ResizeObserver` when available for accurate measurements.
+ * - Falls back to `window.resize` if `ResizeObserver` is not supported.
+ */
+export function useElementSize(ref: RefObject<HTMLElement | null>): [number, number] {
+  const [size, setSize] = useState<[number, number]>([
+    ref.current?.clientWidth ?? 0,
+    ref.current?.clientHeight ?? 0,
+  ]);
+
+  const readSize = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // Prefer border-box size when available, but we recompute from DOM here for compatibility
+    const width = Math.max(el.offsetWidth, el.clientWidth);
+    const height = Math.max(el.offsetHeight, el.clientHeight);
+    setSize([width, height]);
+  }, [ref]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    if (typeof ResizeObserver != "undefined") {
+      const ro = new ResizeObserver(() => readSize());
+      ro.observe(el);
+
+      // prime
+      readSize();
+      return () => ro.disconnect();
+    }
+
+    // Fallback: listen to window resize
+    readSize();
+    window.addEventListener("resize", readSize);
+    return () => {
+      window.removeEventListener("resize", readSize);
+    };
+  }, [readSize, ref]);
+
+  return size;
+}
+
+/* =========================== useReMountComponent ===================== */
+
+/**
+ * Returns a counter that increments after a specified threshold, which can be used
+ * as a React `key` to force a subtree remount.
+ *
+ * @param threshold - Delay in milliseconds before incrementing the counter (default: `30000`).
+ * @param options - Optional behavior flags.
+ * @param options.pauseWhenHidden - Pause the timer while the document is hidden (default: `true`).
+ * @returns The incrementing counter value.
+ *
+ * @example
+ * const key = useReMountComponent(10_000);
+ * return <ExpensiveWidget key={key} />;
+ */
+export function useReMountComponent(
+  threshold: number = 30_000,
+  options?: { pauseWhenHidden?: boolean },
+): number {
+  const { pauseWhenHidden = true } = options ?? {};
+  const [refreshCount, setRefreshCount] = useState(0);
+  const timerRef = useRef<number | null>(null);
+
+  const start = useCallback(() => {
+    if (timerRef.current != null) return;
+    timerRef.current = window.setTimeout(() => {
+      timerRef.current = null;
+      setRefreshCount((c) => c + 1);
+    }, threshold);
+  }, [threshold]);
+
+  const stop = useCallback(() => {
+    if (timerRef.current != null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window == "undefined") return;
+    start();
+
+    if (!pauseWhenHidden) {
+      return () => stop();
+    }
+
+    const onVisibility = () => {
+      stop();
+      if (document.visibilityState == "visible") start();
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      stop();
+    };
+  }, [pauseWhenHidden, start, stop]);
+
+  return refreshCount;
+}
+
+/* ============================= useOrientation ======================== */
+
+export type Orientation = "portrait" | "landscape";
+
+/**
+ * Provides the current screen orientation `"portrait"` or `"landscape"`.
+ *
+ * @returns The current {@link Orientation}, or `null` if undetectable.
+ *
+ * @remarks
+ * - Uses `matchMedia` queries under the hood; works on iOS Safari where `ScreenOrientation` API is limited.
+ * - Debounced via `requestAnimationFrame` to avoid rapid state flips during rotation.
+ */
+export function useOrientation(): Orientation | null {
+  const [orientation, setOrientation] = useState<Orientation | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let raf = 0;
+    const compute = () => {
+      raf = requestAnimationFrame(() => {
+        const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+        const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+
+        if (isPortrait) setOrientation("portrait");
+        else if (isLandscape) setOrientation("landscape");
+        else setOrientation(null);
+      });
+    };
+
+    compute();
+    window.addEventListener("orientationchange", compute);
+    window.addEventListener("resize", compute); // some browsers only fire resize
+
+    return () => {
+      window.removeEventListener("orientationchange", compute);
+      window.removeEventListener("resize", compute);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, []);
 
   return orientation;
-};
-
-export type Orientation = "portrait" | "landscape";
+}
