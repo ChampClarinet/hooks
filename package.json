@@ -1,6 +1,6 @@
 {
   "name": "@cantabile/hooks",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "React hooks snippets for modern React (18 & 19)",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
