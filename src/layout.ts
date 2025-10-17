@@ -1,4 +1,5 @@
-import { RefObject, useCallback, useEffect, useMemo, useState } from "react";
+import type { RefObject} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { wait } from "./utils";
 
 /**
