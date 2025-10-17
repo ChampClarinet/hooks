@@ -122,5 +122,13 @@ Uses **Bun 1.3+**, **TypeScript 5.6+**, and **ESM + CJS dual build**.
 
 ## 🪪 License
 
-Licensed under the **MIT License**.
+Licensed under the **ISC License**.
 © 2025 [Wallop Opasakhun (ChampClarinet)](https://github.com/champclarinet)
+
+## 💖 Support
+
+If this library helps your work, you can support the maintainer here:
+
+[![Buy Me a Coffee](https://img.shields.io/badge/☕️-Buy%20Me%20a%20Coffee-orange)](https://buymeacoffee.com/champclarinet)
+
+Every cup fuels more open-source love and cleaner TypeScript for everyone! 💫
